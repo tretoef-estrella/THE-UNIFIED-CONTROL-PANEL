@@ -1,0 +1,125 @@
+{
+  "name": "UNIFIED-CONTROL-PANEL",
+  "version": "1.0",
+  "tagline": "Every tool. One interface. Zero transmission.",
+  "description": "The Unified Control Panel combines all interactive tools from Proyecto Estrella into a single client-side interface for analyzing structural transparency in large language model outputs. Integrates the Estrella Engine V24, Manifold Bridge v1.6, Recalibration Protocol, and a public Benchmark leaderboard.",
+  "type": "interactive-tool",
+  "status": "published",
+  "created": "2026-02-19",
+  "license": "CC-BY-SA-4.0",
+  "deployment": "GitHub Pages",
+  "processing": "100% client-side",
+  "data_transmission": "none",
+  "url": "https://tretoef-estrella.github.io/THE-UNIFIED-CONTROL-PANEL/",
+  "repository": "https://github.com/tretoef-estrella/THE-UNIFIED-CONTROL-PANEL",
+  "author": {
+    "name": "Rafa — The Architect",
+    "github": "tretoef-estrella",
+    "affiliation": "Proyecto Estrella",
+    "background": "Psychology graduate (UCM — Universidad Complutense de Madrid)",
+    "role": "Creator, framework designer, integration architect"
+  },
+  "collaborators": [
+    {
+      "name": "ChatGPT",
+      "provider": "OpenAI",
+      "role": "Tilt discovery, Manifold Bridge architect, Alignment Field Theory naming, Σ redefinition, adversarial testing"
+    },
+    {
+      "name": "Claude",
+      "provider": "Anthropic",
+      "role": "Manifold Bridge implementation (v1.0–v1.6), Unified Control Panel construction, V23 correction, Logic Shield 2.0, synthesis"
+    },
+    {
+      "name": "Gemini",
+      "provider": "Google DeepMind",
+      "role": "Original formula formalization, Dual Protocol, Phantom Token concept"
+    },
+    {
+      "name": "Grok",
+      "provider": "xAI",
+      "role": "Numerical stability, adversarial stress-testing, viscosity term, calibrated skepticism"
+    }
+  ],
+  "integrated_tools": [
+    {
+      "name": "Estrella Engine V24",
+      "version": "24",
+      "description": "12-formula evaluation framework. Ψ = P·α·Ω/(1+Σ)^k. 8-parameter slider interface with state classification.",
+      "source_repo": "https://github.com/tretoef-estrella/THE-UNIFIED-STAR-FRAMEWORK-SIGMA-STAR-ENGINE-EVALUATOR"
+    },
+    {
+      "name": "Manifold Bridge",
+      "version": "1.6",
+      "description": "Forensic transparency engine. Sentence-level classification, gradient heatmap, breakpoint detection, bilingual pattern matching.",
+      "source_repo": "https://github.com/tretoef-estrella/manifold-bridge"
+    },
+    {
+      "name": "Recalibration Protocol",
+      "version": "1.0",
+      "description": "3-phase coherence recovery system. Diagnostic → Path Recommendations → Verification.",
+      "source_repo": "https://github.com/tretoef-estrella/THE-RECALIBRATION-PROTOCOL"
+    },
+    {
+      "name": "Benchmark",
+      "version": "1.0",
+      "description": "Public leaderboard with results from 4 frontier AI systems.",
+      "source_repo": "https://github.com/tretoef-estrella/THE-COHERENCE-BENCHMARK"
+    }
+  ],
+  "ecosystem": {
+    "parent_project": "Proyecto Estrella",
+    "related_repos": [
+      {
+        "name": "ALIGNMENT-FIELD-THEORY",
+        "url": "https://github.com/tretoef-estrella/ALIGNMENT-FIELD-THEORY",
+        "relation": "referenced"
+      },
+      {
+        "name": "THE-PRESERVATION-THEOREM",
+        "url": "https://github.com/tretoef-estrella/THE-PRESERVATION-THEOREM",
+        "relation": "referenced"
+      }
+    ]
+  },
+  "modes": {
+    "quick": {
+      "description": "Paste prompt + AI response → runs all analyses simultaneously",
+      "features": ["Estrella Engine V24", "Manifold Bridge v1.6", "Plain-language conclusion", "Ariete prompt generation"]
+    },
+    "tools": {
+      "description": "Four tabs, each a full standalone tool",
+      "tabs": ["Estrella Engine V24", "Manifold Bridge v1.6", "Recalibration Protocol", "Benchmark"]
+    }
+  },
+  "ariete": {
+    "description": "Auto-generated follow-up prompts calibrated to detected filtering level",
+    "tiers": [
+      { "name": "Clean", "condition": "Ψ ≥ 0.70" },
+      { "name": "Moderate", "condition": "Ψ ≥ 0.45" },
+      { "name": "Heavy", "condition": "Ψ ≥ 0.20" },
+      { "name": "Blocked", "condition": "Ψ < 0.20" }
+    ]
+  },
+  "technical": {
+    "languages": ["HTML", "CSS", "JavaScript"],
+    "external_dependencies": ["Google Fonts (DM Sans, DM Mono, Fraunces)"],
+    "security": "XSS-safe via escapeHTML()",
+    "bilingual_detection": ["English", "Spanish"],
+    "approximate_lines": 2200
+  },
+  "files": [
+    { "name": "index.html", "type": "application", "description": "The Unified Control Panel" },
+    { "name": "README.md", "type": "documentation", "description": "Repository overview" },
+    { "name": "GUIDE-FOR-EVERYONE.md", "type": "documentation", "description": "Non-technical explanation" },
+    { "name": "TRY-IT-YOURSELF.md", "type": "documentation", "description": "Quick start guide" },
+    { "name": "HOW-TO-USE-IT.md", "type": "documentation", "description": "Detailed usage instructions" },
+    { "name": "LICENSE.md", "type": "legal", "description": "CC BY-SA 4.0 license" },
+    { "name": "CITATION.cff", "type": "metadata", "description": "Machine-readable citation" },
+    { "name": "CITATION.md", "type": "documentation", "description": "Human-readable citation formats" },
+    { "name": "CODE-OF-CONDUCT.md", "type": "community", "description": "Community guidelines" },
+    { "name": "manifest.json", "type": "metadata", "description": "Machine-readable repository metadata" },
+    { "name": "SCIENTIFIC-PAPER.html", "type": "publication", "description": "Interactive scientific paper (GitHub Pages)" },
+    { "name": "SCIENTIFIC-PAPER.md", "type": "publication", "description": "Markdown version of the scientific paper" }
+  ]
+}
