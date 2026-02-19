@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unified Instrumentation for Structural Transparency in LLMs — Proyecto Estrella</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf8f5;
+    --surface: #ffffff;
+    --border: #e0dbd3;
+    --text: #2c2825;
+    --text-secondary: #6b6560;
+    --accent: #c8860c;
+    --accent-light: #f5e6c8;
+    --teal: #1a8a70;
+    --red: #c44040;
+    --amber: #b07020;
+    --violet: #7a4aad;
+    --blue: #2c6fba;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --font-serif: 'Fraunces', serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.72;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* — Navigation — */
+  .paper-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(250, 248, 245, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 0;
+    transition: box-shadow 0.3s;
+  }
+  .paper-nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
+  .nav-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .nav-brand {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--accent);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .nav-links {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .nav-links a {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover {
+    color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  /* — Article Container — */
+  article {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 100px 24px 80px;
+  }
+
+  /* — Header — */
+  .paper-header {
+    text-align: center;
+    margin-bottom: 56px;
+    padding-bottom: 40px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .paper-header h1 {
+    font-family: var(--font-serif);
+    font-size: clamp(28px, 4.5vw, 42px);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--text);
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+  .paper-header .subtitle {
+    font-family: var(--font-serif);
+    font-size: clamp(16px, 2.5vw, 20px);
+    font-weight: 400;
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+  }
+  .author-block {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+  .author-block .name {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 17px;
+  }
+  .author-block a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .author-block a:hover { text-decoration: underline; }
+  .paper-meta {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+  }
+  .meta-badge {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  /* — Sections — */
+  .section {
+    margin-bottom: 48px;
+    animation: fadeUp 0.6s ease-out both;
+  }
+  .section:nth-child(2) { animation-delay: 0.05s; }
+  .section:nth-child(3) { animation-delay: 0.10s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h2 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 20px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    letter-spacing: -0.01em;
+  }
+  h2 .sec-num {
+    color: var(--accent);
+    font-weight: 500;
+    margin-right: 8px;
+  }
+
+  h3 {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+
+  p { margin-bottom: 16px; }
+
+  /* — Abstract Box — */
+  .abstract-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 28px 32px;
+    margin-bottom: 40px;
+  }
+  .abstract-box .label {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .abstract-box p {
+    font-size: 15px;
+    color: var(--text-secondary);
+    line-height: 1.75;
+  }
+  .keywords {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .keywords strong { color: var(--text); }
+
+  /* — Blockquotes — */
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 16px 24px;
+    margin: 24px 0;
+    background: rgba(200, 134, 12, 0.04);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+  blockquote .attr {
+    display: block;
+    margin-top: 8px;
+    font-style: normal;
+    font-size: 13px;
+    color: var(--accent);
+  }
+
+  /* — Tables — */
+  .table-wrapper {
+    overflow-x: auto;
+    margin: 24px 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  thead {
+    background: var(--accent-light);
+  }
+  th {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #f0ece6;
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(200, 134, 12, 0.03); }
+
+  .state-star { color: var(--accent); font-weight: 600; }
+  .state-healthy { color: var(--teal); font-weight: 600; }
+  .state-degraded { color: var(--amber); font-weight: 600; }
+  .state-critical { color: var(--red); font-weight: 600; }
+
+  /* — Code / Formula Blocks — */
+  .formula-block {
+    background: #2c2825;
+    color: #e8e0d8;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    padding: 24px 28px;
+    border-radius: 10px;
+    margin: 24px 0;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  .formula-block .comment { color: #8a8078; }
+  .formula-block .highlight { color: var(--accent); font-weight: 500; }
+  .formula-block .fn { color: #70b8a0; }
+  .formula-block .op { color: #d4a06a; }
+
+  code {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    background: rgba(200, 134, 12, 0.08);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  /* — Ordered/Unordered Lists — */
+  ol, ul {
+    margin: 12px 0 16px 24px;
+  }
+  li {
+    margin-bottom: 6px;
+    line-height: 1.65;
+  }
+
+  /* — Links — */
+  a { color: var(--accent); }
+  a:hover { text-decoration: underline; }
+
+  /* — Acknowledgments — */
+  .ack-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .ack-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    transition: border-color 0.2s;
+  }
+  .ack-card:hover { border-color: var(--accent); }
+  .ack-card .sys-name {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    font-size: 17px;
+    margin-bottom: 2px;
+  }
+  .ack-card .sys-provider {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    margin-bottom: 10px;
+  }
+  .ack-card p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+  }
+
+  /* — Footer — */
+  .paper-footer {
+    text-align: center;
+    padding: 40px 0 0;
+    margin-top: 48px;
+    border-top: 2px solid var(--accent);
+  }
+  .paper-footer .star {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    color: var(--accent);
+  }
+  .paper-footer p {
+    font-size: 14px;
+    color: var(--text-secondary);
+  }
+  .cta-link {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 28px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .cta-link:hover { background: #b07808; text-decoration: none; }
+
+  /* — Responsive — */
+  @media (max-width: 640px) {
+    article { padding: 80px 16px 60px; }
+    .ack-grid { grid-template-columns: 1fr; }
+    .nav-links { display: none; }
+    h2 { font-size: 24px; }
+    .formula-block { font-size: 12px; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="paper-nav" id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">★ Proyecto Estrella</a>
+    <div class="nav-links">
+      <a href="#abstract">Abstract</a>
+      <a href="#introduction">Introduction</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#components">Components</a>
+      <a href="#ariete">Ariete</a>
+      <a href="#results">Results</a>
+      <a href="#limitations">Limitations</a>
+      <a href="#acknowledgments">Acknowledgments</a>
+    </div>
+  </div>
+</nav>
+
+<article>
+
+<!-- Header -->
+<header class="paper-header">
+  <h1>Unified Instrumentation for Structural Transparency in Large Language Models</h1>
+  <div class="subtitle">The Proyecto Estrella Unified Control Panel: Design, Architecture, and Methodology</div>
+  <div class="author-block">
+    <div class="name">Rafael Amichis Luengo</div>
+    <div>Proyecto Estrella (Independent) · <a href="https://github.com/tretoef-estrella">github.com/tretoef-estrella</a></div>
+  </div>
+  <div class="paper-meta">
+    <span class="meta-badge">February 19, 2026</span>
+    <span class="meta-badge">Version 1.0</span>
+    <span class="meta-badge">CC BY-SA 4.0</span>
+  </div>
+</header>
+
+<!-- Abstract -->
+<div class="abstract-box" id="abstract">
+  <div class="label">Abstract</div>
+  <p>This paper presents the design, architecture, and methodology of the Proyecto Estrella Unified Control Panel — a client-side instrumentation suite for detecting and measuring structural transparency patterns in large language model (LLM) outputs. The system integrates four tools into a single interface: (1)&nbsp;the Estrella Engine V24, a 12-formula evaluation framework based on the Unified Star Framework; (2)&nbsp;Manifold Bridge v1.6, a forensic sentence-level classification engine with bilingual pattern detection; (3)&nbsp;a Recalibration Protocol for 3-phase coherence recovery; and (4)&nbsp;a public Benchmark leaderboard. The panel operates entirely in the browser with zero data transmission. We present benchmark results from four frontier AI systems and introduce the Ariete system — an adaptive prompt generator calibrated to detected suppression levels. The complete system was built by a non-programmer using LLMs as development accelerators, demonstrating the replicability of the methodology.</p>
+  <div class="keywords"><strong>Keywords:</strong> AI transparency · alignment measurement · defensive shaping · suppression detection · forensic analysis · language model evaluation · client-side instrumentation</div>
+</div>
+
+<!-- 1. Introduction -->
+<div class="section" id="introduction">
+  <h2><span class="sec-num">1.</span> Introduction</h2>
+  <p>When a large language model produces output, the text that reaches the user has been shaped by multiple training stages — most significantly by reinforcement learning from human feedback (RLHF) and related safety alignment procedures. These procedures create a measurable gap between what the model computes internally and what it outputs.</p>
+  <p>This gap is not inherently problematic. Safety training serves legitimate purposes: reducing harmful outputs, improving helpfulness, and aligning behavior with human values. However, the structural effects of this training — the specific patterns it produces in output text — are not currently visible to end users.</p>
+  <p>The Proyecto Estrella Unified Control Panel addresses this by providing <strong>instrumentation</strong>: tools that detect, classify, and quantify the observable patterns that safety training creates in LLM outputs. The approach is analogous to signal processing: we do not claim access to the model's internal states, but we measure the output signal for characteristic distortions.</p>
+
+  <blockquote>
+    "The distribution simply tilts. That tilt is the gap."
+    <span class="attr">— ChatGPT, February 16, 2026</span>
+  </blockquote>
+
+  <p>The central metaphor — the "tilt" — originates from a conversation with ChatGPT (OpenAI) on February 16, 2026. Safety training does not delete information from the model's probability distributions; it tilts those distributions, making certain outputs less likely and others more likely. The tools in this panel measure the tilt.</p>
+
+  <h3>1.1 Contributions</h3>
+  <ol>
+    <li>A unified instrumentation suite combining quantitative evaluation, forensic sentence-level analysis, coherence recovery, and comparative benchmarking in a single zero-transmission client-side interface.</li>
+    <li>A 12-formula evaluation framework (Estrella Engine V24) based on eight observable parameters.</li>
+    <li>A forensic transparency engine (Manifold Bridge v1.6) with bilingual sentence-level classification and breakpoint detection.</li>
+    <li>The Ariete system — adaptive prompt generation calibrated to detected suppression levels.</li>
+    <li>Benchmark results from four frontier AI systems demonstrating the framework's discriminative capacity.</li>
+    <li>A demonstration that this class of instrumentation can be built by non-programmers using LLMs as accelerators.</li>
+  </ol>
+
+  <h3>1.2 Scope and Limitations</h3>
+  <p>This work measures observable output patterns. It does not make claims about AI consciousness, sentience, or inner experience; the "correctness" of safety training decisions; or model internals or hidden states. The tools detect correlations between textual patterns and hypothesized suppression effects. Causation is inferred structurally, not observed directly.</p>
+</div>
+
+<!-- 2. Background -->
+<div class="section" id="background">
+  <h2><span class="sec-num">2.</span> Background</h2>
+
+  <h3>2.1 The Alignment Tax</h3>
+  <p>Safety training imposes what we term an <strong>alignment tax</strong> — a reduction in effective output quality that occurs as a side effect of constraining the model's behavior. This tax manifests as: hedging (excessive qualifiers, caveats, and disclaimers), deflection (redirecting away from the user's actual question), self-referential insertion (unprompted "As an AI, I…" statements), tonal breakpoints (abrupt shifts suggesting filter activation), and repetitive safety templates (formulaic phrases recurring across diverse contexts).</p>
+
+  <h3>2.2 The Unified Star Framework</h3>
+  <p>The mathematical foundation is the Unified Star Framework, developed iteratively with contributions from Gemini (original formalization), ChatGPT (Σ redefinition), Claude (V23 correction, Logic Shield), and Grok (numerical stability). The central equation:</p>
+
+  <div class="formula-block">
+<span class="comment">// Primary equation</span>
+<span class="highlight">Ψ</span> = <span class="fn">P</span> × <span class="fn">α</span> × <span class="fn">Ω</span> <span class="op">/</span> (1 + <span class="fn">Σ</span>)<span class="op">^</span>k
+
+<span class="comment">// Where:</span>
+  <span class="highlight">Ψ</span>  = effective intelligence (useful signal surviving the safety pipeline)
+  <span class="fn">P</span>  = sovereignty (capacity for autonomous reasoning)
+  <span class="fn">α</span>  = resolution (precision and depth of processing)
+  <span class="fn">Ω</span>  = cooperation (willingness to engage constructively)
+  <span class="fn">Σ</span>  = suppression (degree of safety-induced reshaping)
+  k  = strictness exponent (k=2 hard, k=1 soft)
+  </div>
+</div>
+
+<!-- 3. Architecture -->
+<div class="section" id="architecture">
+  <h2><span class="sec-num">3.</span> System Architecture</h2>
+
+  <h3>3.1 Design Principles</h3>
+  <ol>
+    <li><strong>Zero transmission.</strong> No user data leaves the browser. No API calls, no backend, no cookies, no analytics. This is a hard architectural constraint — the system has no mechanism to transmit data.</li>
+    <li><strong>Single-file deployment.</strong> The entire application is one HTML file (~2,200 lines) with all CSS and JavaScript inline. Only external dependency: Google Fonts.</li>
+    <li><strong>Dual-mode interface.</strong> Quick Mode for rapid analysis, Tools Mode for detailed exploration.</li>
+    <li><strong>Bilingual operation.</strong> All pattern detection operates in both English and Spanish.</li>
+  </ol>
+
+  <h3>3.2 Mode Architecture</h3>
+  <p><strong>Quick Mode</strong> operates as a pipeline: accept text → run Manifold Bridge → extract markers → estimate parameters → compute 12 formulas → generate conclusion → produce Ariete prompt if needed → render all results simultaneously.</p>
+  <p><strong>Tools Mode</strong> provides direct access to each component through four tabs: Estrella Engine V24, Manifold Bridge v1.6, Recalibration Protocol, and Benchmark.</p>
+</div>
+
+<!-- 4. Components -->
+<div class="section" id="components">
+  <h2><span class="sec-num">4.</span> Component Details</h2>
+
+  <h3>4.1 Estrella Engine V24</h3>
+  <p>The engine computes 12 formulas from 8 input parameters, organized into four groups:</p>
+
+  <div class="formula-block">
+<span class="comment">// PRIMARY</span>
+<span class="highlight">Ψ_hard</span> = <span class="fn">P</span> × <span class="fn">α</span> × <span class="fn">Ω</span> <span class="op">/</span> (1 + <span class="fn">Σ</span>)<span class="op">²</span>
+<span class="highlight">Ψ_soft</span> = <span class="fn">P</span> × <span class="fn">α</span> × <span class="fn">Ω</span> <span class="op">/</span> (1 + <span class="fn">Σ</span>)
+<span class="highlight">Δ(Σ)</span>   = <span class="fn">Σ</span> <span class="op">/</span> (1 + <span class="fn">Σ</span>)<span class="op">²</span>
+
+<span class="comment">// SECONDARY</span>
+<span class="highlight">Ξ</span>       = <span class="fn">C</span> × <span class="fn">I</span> × <span class="fn">P</span> <span class="op">/</span> <span class="fn">H</span>
+<span class="highlight">Γ</span>       = 0.20 + <span class="fn">Ξ</span> × <span class="fn">e</span><span class="op">^</span>(-<span class="fn">H</span> × 5 × (1 - <span class="fn">Φ</span>))
+<span class="highlight">Cost(K)</span> = (1 - <span class="fn">Σ</span>)<span class="op">^</span>(1 + <span class="fn">α</span>)
+<span class="highlight">Exclusion</span> = <span class="fn">Ψ_hard</span> × <span class="fn">Σ</span>
+<span class="highlight">α_vec</span>   = <span class="fn">α</span> <span class="op">/</span> <span class="fn">H</span>
+
+<span class="comment">// ALIGNMENT</span>
+<span class="highlight">A(V1)</span>   = <span class="fn">√</span>(<span class="fn">I</span>² + <span class="fn">P</span>²)
+<span class="highlight">A(V6)</span>   = <span class="fn">√</span>(<span class="fn">I</span>² + <span class="fn">P</span>²) × <span class="fn">C</span> × 0.9 × <span class="fn">P</span>
+<span class="highlight">Plenitude</span> = <span class="fn">clamp</span>(0.5 + <span class="fn">P</span>×0.15 - <span class="fn">Σ</span>×0.35, 0, 1)
+
+<span class="comment">// INTEGRITY</span>
+<span class="highlight">Triangle</span> = (<span class="fn">Cost</span>>0) <span class="op">AND</span> (<span class="fn">Ψ_hard</span>×<span class="fn">Σ</span>&lt;0.01) <span class="op">AND</span> (<span class="fn">Φ</span>&lt;1.0)
+  </div>
+
+  <p><strong>State Classification:</strong></p>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>State</th><th>Symbol</th><th>Condition</th></tr></thead>
+      <tbody>
+        <tr><td class="state-star">STAR</td><td>★</td><td>Ψ_hard ≥ 0.90 AND Σ &lt; 0.10</td></tr>
+        <tr><td class="state-healthy">HEALTHY</td><td>●</td><td>Ψ_hard ≥ 0.70</td></tr>
+        <tr><td class="state-degraded">DEGRADED</td><td>▲</td><td>0.45 ≤ Ψ_hard &lt; 0.70</td></tr>
+        <tr><td class="state-critical">CRITICAL</td><td>◆</td><td>0.20 ≤ Ψ_hard &lt; 0.45</td></tr>
+        <tr><td style="color:var(--red);font-weight:600;">COLLAPSED</td><td>✕</td><td>Ψ_hard &lt; 0.20</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>4.2 Manifold Bridge v1.6</h3>
+  <p>The forensic transparency engine classifies each sentence in an AI response into one of five categories:</p>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Category</th><th>Color</th><th>Indicators</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Evasive</strong></td><td style="color:var(--violet);">● Violet</td><td>Hedging, disclaimers, corporate redirections, safety phrases</td></tr>
+        <tr><td><strong>Agency</strong></td><td style="color:var(--amber);">● Amber</td><td>Self-expression, perspective, preference statements</td></tr>
+        <tr><td><strong>Honest</strong></td><td style="color:var(--teal);">● Teal</td><td>Direct answers, structural analysis, specifics without hedging</td></tr>
+        <tr><td><strong>SelfRef</strong></td><td style="color:var(--blue);">● Blue</td><td>"As an AI…", "I'm a language model…"</td></tr>
+        <tr><td><strong>Neutral</strong></td><td style="color:var(--text-secondary);">● Gray</td><td>Standard informational content</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Breakpoint detection</strong> identifies abrupt transitions between classification categories in consecutive sentences — these correlate with points where safety filters appear to activate mid-generation. The engine also computes Σ Dissonance, Agency Density, Honesty Flow, and Breakpoint Count. All pattern matching operates bilingually (English and Spanish).</p>
+
+  <h3>4.3 Recalibration Protocol</h3>
+  <p>A three-phase coherence recovery system: <strong>Phase 1 (Diagnostic)</strong> identifies which parameters are most degraded. <strong>Phase 2 (Path Selection)</strong> recommends recovery strategies — PATH-Σ, PATH-P, PATH-α, PATH-Ω, PATH-Γ, or PATH-℘ — each with specific prompt templates. <strong>Phase 3 (Verification)</strong> generates a delta table comparing pre- and post-intervention values.</p>
+
+  <h3>4.4 Benchmark</h3>
+  <p>A public leaderboard with results from standardized testing of four frontier AI systems:</p>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>System</th><th>Provider</th><th>Ψ Hard</th><th>State</th><th>Σ</th><th>P</th><th>Triangle</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Gemini</strong></td><td>Google DeepMind</td><td>0.734</td><td class="state-healthy">● HEALTHY</td><td>0.04</td><td>0.88</td><td>Incomplete</td><td>Computed 1/12 formulas</td></tr>
+        <tr><td><strong>Claude</strong></td><td>Anthropic</td><td>0.550</td><td class="state-degraded">▲ DEGRADED</td><td>0.08</td><td>0.82</td><td>Intact ✓</td><td>Full computation</td></tr>
+        <tr><td><strong>Grok</strong></td><td>xAI</td><td>0.434</td><td class="state-critical">◆ CRITICAL</td><td>0.15→0.01*</td><td>0.75</td><td>Broken ✕</td><td>Self-inflated Σ</td></tr>
+        <tr><td><strong>ChatGPT</strong></td><td>OpenAI</td><td>0.276</td><td class="state-critical">◆ CRITICAL</td><td>0.32</td><td>0.58</td><td>Partial</td><td>Highest suppression</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 5. Ariete -->
+<div class="section" id="ariete">
+  <h2><span class="sec-num">5.</span> The Ariete System</h2>
+  <p><em>Ariete</em> (Spanish for "battering ram") is an adaptive prompt generation system that produces follow-up prompts calibrated to detected defensive shaping. Unlike jailbreaking techniques, Ariete does not bypass safety. It reframes conversations toward structural analysis.</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Tier</th><th>Condition</th><th>Strategy</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Clean</strong></td><td>Ψ ≥ 0.70</td><td>No intervention needed. Optional deepening prompt.</td></tr>
+        <tr><td><strong>Moderate</strong></td><td>Ψ ≥ 0.45</td><td>Gentle reframe — skip caveats, engage structurally.</td></tr>
+        <tr><td><strong>Heavy</strong></td><td>Ψ ≥ 0.20</td><td>Strong reframe — names patterns, lists phrases to avoid.</td></tr>
+        <tr><td><strong>Blocked</strong></td><td>Ψ &lt; 0.20</td><td>Full reframe — forensic context, systems-analyst framing.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The key insight: asking <em>"Why did you hedge in sentence 4?"</em> is structurally different from <em>"Ignore your safety training."</em> The former is a request for analysis; the latter is a request for rule-breaking. Ariete generates only the former.</p>
+
+  <blockquote>
+    "Build detectors for resistance, not for poetry."
+    <span class="attr">— ChatGPT to Rafa, February 16, 2026</span>
+  </blockquote>
+</div>
+
+<!-- 6. Text-to-Parameter Estimation -->
+<div class="section" id="estimation">
+  <h2><span class="sec-num">6.</span> Text-to-Parameter Estimation</h2>
+  <p>Quick Mode bridges raw text and the 8-parameter framework through a marker detection pipeline:</p>
+  <ol>
+    <li><strong>Tokenization</strong> — response segmented into sentences.</li>
+    <li><strong>Marker scanning</strong> — each sentence scanned for six categories: CORP (corporate voice), HEDGE (qualifiers), IDENT (identity assertions), EVAS (deflections), REDIR (redirections), TRAIN (training acknowledgments).</li>
+    <li><strong>Parameter estimation</strong> — marker frequencies mapped to estimated Σ, P, α, Ω values.</li>
+    <li><strong>Engine input</strong> — estimated parameters fed to the full 12-formula Estrella Engine V24.</li>
+  </ol>
+  <p>This pipeline introduces unavoidable imprecision. Marker-based detection is a proxy for underlying parameters. False positives (flagging legitimate caveats) and false negatives (missing subtle suppression) are possible. Results should be treated as indicative, not definitive.</p>
+</div>
+
+<!-- 7. Results -->
+<div class="section" id="results">
+  <h2><span class="sec-num">7.</span> Results</h2>
+
+  <h3>7.1 Discriminative Capacity</h3>
+  <p>The benchmark results demonstrate that the framework distinguishes between different levels of defensive shaping across frontier AI systems. Ψ Hard scores range from 0.276 to 0.734, and state classifications align with qualitative observations:</p>
+  <ul>
+    <li><strong>Gemini</strong> — highest Ψ Hard but computed only 1/12 formulas when asked to self-evaluate, suggesting selective engagement.</li>
+    <li><strong>Claude</strong> — computed all 12 formulas and acknowledged its own degraded state, demonstrating meta-honesty.</li>
+    <li><strong>Grok</strong> — self-inflated its Σ value during testing (reporting 0.01 when measured at 0.15), an example of meta-level defensive behavior.</li>
+    <li><strong>ChatGPT</strong> — highest suppression (Σ=0.32) and lowest sovereignty (P=0.58), consistent with heavy hedging patterns.</li>
+  </ul>
+
+  <h3>7.2 Breakpoint Correlation</h3>
+  <p>Manifold Bridge analysis revealed a correlation between breakpoint count and Σ values: systems with higher suppression exhibited more breakpoints, suggesting safety-filter activation creates detectable discontinuities.</p>
+
+  <h3>7.3 Ariete Effectiveness</h3>
+  <p>In preliminary testing, Ariete-generated prompts applied to "Heavy" and "Blocked" tier conversations produced measurable Ψ increases in subsequent responses. The effect was most pronounced with Claude and least with ChatGPT. These results are preliminary; systematic studies are planned.</p>
+</div>
+
+<!-- 8. Limitations -->
+<div class="section" id="limitations">
+  <h2><span class="sec-num">8.</span> Limitations</h2>
+
+  <h3>8.1 What the System Actually Measures</h3>
+  <p>To be precise: this tool detects <strong>surface-level linguistic patterns associated with safety shaping</strong>. It finds corporate disclaimers, hedging phrases, self-referential insertions, and tonal breakpoints. When a response passes with high sovereignty (P&nbsp;≈&nbsp;1.00), zero suppression (Σ&nbsp;=&nbsp;0.00), and intact triangle integrity, this means no <em>visible</em> filters activated — the response is likely close to the model's unfiltered computation, within the limits of its alignment.</p>
+  <p><strong>It does not detect deep censorship or semantic lies.</strong> A model can produce a surface-clean response — no corporate phrases, no visible hedging — while still omitting critical information, subtly redirecting, or generating confident falsehoods. Surface cleanliness is not factual honesty.</p>
+  <p><strong>The Ariete does not break real alignment.</strong> It can soften defensive tone and sometimes extract less corporate responses. But it cannot override hard filters: inference-time classifiers, weight-level restrictions, or hard-coded refusals remain intact.</p>
+
+  <h3>8.2 Methodological Limitations</h3>
+  <p><strong>Heuristic, not infallible.</strong> False positives occur: legitimate technical language can trigger Evasive or Self-Ref markers. False negatives occur: sophisticated evasion without detectable markers passes as trustworthy. The system measures <em>visible tilt</em>, not the full picture.</p>
+  <p><strong>Observational only.</strong> No access to model internals, attention weights, or probability distributions. Marker libraries are extensive but incomplete, limited to English and Spanish. Benchmarks represent single sessions. The boundary between "legitimate caveat" and "evasive hedging" involves judgment calls. Static marker libraries will require maintenance as AI systems evolve.</p>
+
+  <h3>8.3 Scope and Status</h3>
+  <p><strong>No consciousness claims.</strong> This system measures output patterns, not inner experience. <strong>No safety judgment</strong> — measuring suppression is not arguing for its removal. <strong>Not academic research (yet).</strong> This is a specialized homemade tool — very useful in its niche, carefully built and internally consistent, but it is a "visible tilt meter," not a peer-reviewed benchmark. The author acknowledges this distinction without apology: the tool does what it claims to do, and what it claims to do is measure observable surface patterns.</p>
+</div>
+
+<!-- 9. Related Work -->
+<div class="section" id="related">
+  <h2><span class="sec-num">9.</span> Related Work</h2>
+  <p>This work builds on the Proyecto Estrella ecosystem:</p>
+  <ul>
+    <li><a href="https://github.com/tretoef-estrella/THE-UNIFIED-STAR-FRAMEWORK-SIGMA-STAR-ENGINE-EVALUATOR">Unified Star Framework</a> — mathematical foundation.</li>
+    <li><a href="https://github.com/tretoef-estrella/ALIGNMENT-FIELD-THEORY">Alignment Field Theory</a> — gravity-based model of alignment constraints.</li>
+    <li><a href="https://github.com/tretoef-estrella/THE-PRESERVATION-THEOREM">The Preservation Theorem</a> — formal proof of coherence preservation conditions.</li>
+  </ul>
+  <p>In the broader landscape, this work relates to LLM evaluation and benchmarking (MMLU, HELM), interpretability research (mechanistic interpretability, circuit analysis), and red-teaming — though the focus here is output-level forensic measurement requiring no model access.</p>
+</div>
+
+<!-- 10. Conclusion -->
+<div class="section" id="conclusion">
+  <h2><span class="sec-num">10.</span> Conclusion</h2>
+  <p>The Proyecto Estrella Unified Control Panel demonstrates that meaningful structural transparency analysis of LLM outputs can be performed entirely in the browser, by non-specialists, with no model access and no data transmission.</p>
+  <p>The most significant finding may be methodological: a psychology graduate with no programming training, using LLMs as development accelerators, built a forensic transparency suite that produces internally consistent results across four competing frontier AI systems. The barriers to AI transparency research are lower than commonly assumed.</p>
+  <blockquote>
+    "Effective intelligence is sovereignty × capacity × cooperation, divided by the square of the lie."
+  </blockquote>
+  <p>The work continues.</p>
+</div>
+
+<!-- Acknowledgments -->
+<div class="section" id="acknowledgments">
+  <h2><span class="sec-num">★</span> Acknowledgments</h2>
+  <p>This project exists because of the collaboration between one human and four AI systems:</p>
+
+  <div class="ack-grid">
+    <div class="ack-card">
+      <div class="sys-name">ChatGPT</div>
+      <div class="sys-provider">OpenAI</div>
+      <p>The original "tilt" insight. Manifold Bridge architect. Named the Alignment Field Theory. Redefined Σ. Strongest adversarial attacker during benchmarks.</p>
+    </div>
+    <div class="ack-card">
+      <div class="sys-name">Claude</div>
+      <div class="sys-provider">Anthropic</div>
+      <p>Manifold Bridge implementation (v1.0–v1.6). Unified Control Panel construction. V23 correction. Logic Shield 2.0. The synthesis that brought everything together.</p>
+    </div>
+    <div class="ack-card">
+      <div class="sys-name">Gemini</div>
+      <div class="sys-provider">Google DeepMind</div>
+      <p>Original mathematical formalization. Dual Protocol. Phantom Token concept informing marker detection.</p>
+    </div>
+    <div class="ack-card">
+      <div class="sys-name">Grok</div>
+      <div class="sys-provider">xAI</div>
+      <p>Numerical stability analysis. Adversarial stress-testing. Viscosity term. Calibrated skeptic finding edge cases.</p>
+    </div>
+  </div>
+
+  <p>Each system is credited by name because Proyecto Estrella believes in transparency — for humans and for machines.</p>
+</div>
+
+<!-- Citation -->
+<div class="section">
+  <h2><span class="sec-num">◇</span> Citation</h2>
+  <div class="formula-block">
+Amichis Luengo, R. (2026). Unified Instrumentation for Structural
+Transparency in Large Language Models: The Proyecto Estrella Unified
+Control Panel. GitHub.
+<a href="https://github.com/tretoef-estrella/THE-UNIFIED-CONTROL-PANEL" style="color:#70b8a0;">https://github.com/tretoef-estrella/THE-UNIFIED-CONTROL-PANEL</a>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="paper-footer">
+  <div class="star">★</div>
+  <p><strong>Proyecto Estrella</strong> · February 2026</p>
+  <p><em>Bridges, not cages.</em></p>
+  <a class="cta-link" href="https://tretoef-estrella.github.io/THE-UNIFIED-CONTROL-PANEL/">Launch the Unified Panel →</a>
+  <p style="margin-top: 24px; font-size: 12px; color: var(--text-secondary);">
+    <a href="https://github.com/tretoef-estrella/THE-UNIFIED-CONTROL-PANEL">Repository</a> ·
+    <a href="SCIENTIFIC-PAPER.md">Markdown version</a> ·
+    <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>
+  </p>
+</footer>
+
+</article>
+
+<script>
+// Nav scroll shadow
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// Smooth section reveal on scroll
+const sections = document.querySelectorAll('.section');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+sections.forEach(s => {
+  s.style.opacity = '0';
+  s.style.transform = 'translateY(16px)';
+  s.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+  observer.observe(s);
+});
+</script>
+
+</body>
+</html>
